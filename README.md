@@ -4,11 +4,11 @@ The Vrops Exporter operator provides Kubernetes-native deployment and management
 ## Description
 The Vrops Exporter operator includes the following features, among others:
 
-*Kubernetes Custom Resources: Use Kubernetes custom resources to deploy and manage vrops exporters, vrops inventory, and related components.
+* Kubernetes Custom Resources: Use Kubernetes custom resources to deploy and manage vrops exporters, vrops inventory, and related components.
 
-*Simplified Deployment Configuration: Configure the fundamentals of vrops exporter like versions, exporter types, scrape intervals, and replicas from a native Kubernetes resource.
+* Simplified Deployment Configuration: Configure the fundamentals of vrops exporter like versions, exporter types, scrape intervals, and replicas from a native Kubernetes resource.
 
-*Vrops Exporter Target Configuration: Automatically generate monitoring target configurations based on familiar Kubernetes label queries; no need to learn a vrops exporter specific configuration.
+* Vrops Exporter Target Configuration: Automatically generate monitoring target configurations based on familiar Kubernetes label queries; no need to learn a vrops exporter specific configuration.
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.

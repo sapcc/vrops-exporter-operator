@@ -1,0 +1,16 @@
+domain: cloud.sap
+layout:
+- go.kubebuilder.io/v3
+projectName: vrops-exporter-operator
+repo: cloud.sap/project
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: cloud.sap
+  group: monitoring
+  kind: VropsExporter
+  path: cloud.sap/project/api/v1
+  version: v1
+version: "3"

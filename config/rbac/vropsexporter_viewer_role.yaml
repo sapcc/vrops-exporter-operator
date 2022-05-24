@@ -1,0 +1,20 @@
+# permissions for end users to view vropsexporters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vropsexporter-viewer-role
+rules:
+- apiGroups:
+  - monitoring.cloud.sap
+  resources:
+  - vropsexporters
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - monitoring.cloud.sap
+  resources:
+  - vropsexporters/status
+  verbs:
+  - get

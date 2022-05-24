@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - monitoring.cloud.sap
+  resources:
+  - vropsexporters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - monitoring.cloud.sap
+  resources:
+  - vropsexporters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - monitoring.cloud.sap
+  resources:
+  - vropsexporters/status
+  verbs:
+  - get
+  - patch
+  - update

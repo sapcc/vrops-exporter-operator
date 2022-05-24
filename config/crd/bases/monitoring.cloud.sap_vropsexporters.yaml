@@ -1,0 +1,178 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.8.0
+  creationTimestamp: null
+  name: vropsexporters.monitoring.cloud.sap
+spec:
+  group: monitoring.cloud.sap
+  names:
+    kind: VropsExporter
+    listKind: VropsExporterList
+    plural: vropsexporters
+    singular: vropsexporter
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: VropsExporter is the Schema for the vropsexporters API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: VropsExporterSpec defines the desired state of VropsExporter
+            properties:
+              debug:
+                type: string
+              exporter-types:
+                items:
+                  description: ExporterType defines the desired state of ExporterTypes
+                  properties:
+                    collectors:
+                      items:
+                        type: string
+                      type: array
+                    name:
+                      type: string
+                    resources:
+                      description: ResourceRequirements describes the compute resource
+                        requirements.
+                      properties:
+                        limits:
+                          additionalProperties:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                            x-kubernetes-int-or-string: true
+                          description: 'Limits describes the maximum amount of compute
+                            resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                          type: object
+                        requests:
+                          additionalProperties:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                            x-kubernetes-int-or-string: true
+                          description: 'Requests describes the minimum amount of compute
+                            resources required. If Requests is omitted for a container,
+                            it defaults to Limits if that is explicitly specified,
+                            otherwise to an implementation-defined value. More info:
+                            https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                          type: object
+                      type: object
+                  required:
+                  - collectors
+                  - name
+                  type: object
+                type: array
+              image:
+                type: string
+              inventory:
+                description: VropsExporterInventorySpec defines the desired state
+                  of VropsExporterInventory
+                properties:
+                  image:
+                    type: string
+                  namespace:
+                    type: string
+                  port:
+                    type: integer
+                  resources:
+                    description: Define resources requests and limits for single Pods.
+                    properties:
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Limits describes the maximum amount of compute
+                          resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        description: 'Requests describes the minimum amount of compute
+                          resources required. If Requests is omitted for a container,
+                          it defaults to Limits if that is explicitly specified, otherwise
+                          to an implementation-defined value. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                        type: object
+                    type: object
+                  sleep:
+                    type: integer
+                  tag:
+                    type: string
+                  timeout:
+                    type: string
+                type: object
+              inventory-exporter:
+                description: VropsExporterInventoryExporterSpec defines the desired
+                  state of VropsExporterInventoryExporter
+                properties:
+                  port:
+                    type: integer
+                type: object
+              name:
+                type: string
+              namespace:
+                type: string
+              password:
+                type: string
+              port:
+                format: int32
+                type: integer
+              prometheus:
+                type: string
+              scrapeInterval:
+                type: integer
+              scrapeTimeout:
+                type: integer
+              target:
+                type: string
+              user:
+                type: string
+            required:
+            - exporter-types
+            - image
+            - inventory
+            - inventory-exporter
+            - name
+            - password
+            - port
+            - target
+            - user
+            type: object
+          status:
+            description: VropsExporterStatus defines the observed state of VropsExporter
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

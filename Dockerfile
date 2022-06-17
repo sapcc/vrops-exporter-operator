@@ -24,4 +24,6 @@ WORKDIR /
 COPY --from=builder /workspace/manager .
 USER 65532:65532
 
+LABEL source_repository="https://github.com/sapcc/vrops-exporter-operator"
+
 ENTRYPOINT ["/manager"]

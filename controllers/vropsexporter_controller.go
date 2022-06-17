@@ -18,39 +18,53 @@ package controllers
 
 import (
 	"context"
+	"strconv"
+
+	// "fmt"
+
+	monitoringv1 "cloud.sap/project/api/v1" // github.com/sapcc/vrops-exporter-operator/api/v1
+	v1 "cloud.sap/project/api/v1"
+
+	// "github.com/go-logr/logr"
 
 	appsv1 "k8s.io/api/apps/v1"
-	core "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
+
+	// netv1 "k8s.io/api/networking/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	// "k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	// "sigs.k8s.io/controller-runtime/pkg/controller"
+	// "sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	monitoringv1 "cloud.sap/project/api/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	// "sigs.k8s.io/controller-runtime/pkg/source"
 )
 
 // VropsExporterReconciler reconciles a VropsExporter object
 type VropsExporterReconciler struct {
-	client.Client
+	Client client.Client
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=monitoring.cloud.sap,resources=vropsexporters,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=monitoring.cloud.sap;apps,resources=vropsexporters;deployments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=monitoring.cloud.sap,resources=vropsexporters/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=monitoring.cloud.sap,resources=vropsexporters/finalizers,verbs=update
+//+kubebuilder:rbac:groups=monitoring.cloud.sap,resources=vropsexporters/finalizers,verbs=*
 
 // Reconcile on VropsExporterReconciler reconciles a VropsExporter object
 func (r *VropsExporterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	logger := log.FromContext(ctx)
-
 	logger.Info("Fetching vropsExporter resource")
+
 	vropsExporter := &monitoringv1.VropsExporter{}
 	if err := r.Client.Get(ctx, req.NamespacedName, vropsExporter); err != nil {
+		// Object not found, return.  Created objects are automatically garbage collected.
+		// For additional cleanup logic use finalizers.
 		if apierrors.IsNotFound(err) {
 			logger.Error(err, "failed to get vropsExporter resource")
 			return reconcile.Result{}, nil
@@ -60,26 +74,51 @@ func (r *VropsExporterReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	vropsExporterList := &monitoringv1.VropsExporterList{}
 	if err := r.Client.List(context.TODO(), vropsExporterList); err != nil {
+		// Object not found, return.  Created objects are automatically garbage collected.
+		// For additional cleanup logic use finalizers.
 		if apierrors.IsNotFound(err) {
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
 	}
 
-	logger.Info("checking if an existing Deployment exists for this resource")
-	deployment := appsv1.Deployment{}
-	if err := r.Client.Get(ctx, client.ObjectKey{Namespace: vropsExporter.Namespace, Name: vropsExporter.Spec.Name}, &deployment); apierrors.IsNotFound(err) {
-		logger.Info("could not find existing Deployment for Vrops Exporter, creating one...")
-
-		for _, exporterType := range vropsExporter.Spec.ExporterTypes {
-			deployment = *buildDeployment(*vropsExporter, exporterType)
+	var vropsExporterInstances []v1.VropsExporter
+	for _, ve := range vropsExporterList.Items {
+		if ve.Name != vropsExporter.Name {
+			vropsExporterInstances = append(vropsExporterInstances, ve)
 		}
-
 	}
+
+	for _, exporterType := range vropsExporter.Spec.ExporterTypes {
+		vropsExporterFullName := vropsExporter.Spec.Name + "-" + exporterType.Name
+
+		logger.Info("checking if an existing Deployment exists for this resource")
+		deployment := appsv1.Deployment{}
+
+		if err := r.Client.Get(ctx, client.ObjectKey{Namespace: vropsExporter.Namespace, Name: vropsExporterFullName}, &deployment); apierrors.IsNotFound(err) {
+
+			logger.Info("could not find existing Deployment for ", vropsExporterFullName, " creating one...")
+
+			deployment = *buildDeployment(*vropsExporter, exporterType, vropsExporterFullName)
+			if err := r.Client.Create(ctx, &deployment); err != nil {
+				logger.Error(err, "failed to create Deployment resource")
+				return ctrl.Result{}, err
+			}
+
+			if err != nil {
+				logger.Error(err, "failed to get Deployment for vropsExporter resource")
+				return ctrl.Result{}, err
+			}
+			logger.Info("created Deployment resource for VropsExporter")
+			return ctrl.Result{}, nil
+		}
+	}
+
 	return ctrl.Result{}, nil
 }
 
-func buildDeployment(vropsExporter monitoringv1.VropsExporter, exporterTyp monitoringv1.ExporterType) *appsv1.Deployment {
+func buildDeployment(vropsExporter monitoringv1.VropsExporter, exporterType monitoringv1.ExporterType, vropsExporterFullName string) *appsv1.Deployment {
+
 	args := []string{
 		"-m",
 		"/config/collector_config.yaml",
@@ -87,46 +126,68 @@ func buildDeployment(vropsExporter monitoringv1.VropsExporter, exporterTyp monit
 		vropsExporter.Spec.Target,
 	}
 
-	for _, collector := range exporterTyp.Collectors {
+	for _, collector := range exporterType.Collectors {
 		args = append(args, "-c", collector)
 	}
 
 	deployment := appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            vropsExporter.Spec.Name,
+			Name:            vropsExporterFullName,
 			Namespace:       vropsExporter.Namespace,
 			OwnerReferences: []metav1.OwnerReference{*metav1.NewControllerRef(&vropsExporter, monitoringv1.GroupVersion.WithKind("vropsExporter"))},
 		},
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"vrops-exporter-operator.monitoring.cloud.sap": vropsExporter.Spec.Name,
+					"vrops-exporter-operator.monitoring.cloud.sap": vropsExporterFullName,
 				},
 			},
-			Template: core.PodTemplateSpec{
+			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: map[string]string{
-						"vrops-exporter-operator.monitoring.cloud.sap": vropsExporter.Spec.Name,
+						"vrops-exporter-operator.monitoring.cloud.sap": vropsExporterFullName,
 					},
 				},
-				Spec: core.PodSpec{
-					Containers: []core.Container{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
 						{
-							Name:  vropsExporter.Spec.Name,
+							Name:  vropsExporterFullName,
 							Image: vropsExporter.Spec.Image,
-							Ports: []v1.ContainerPort{
+							Ports: []corev1.ContainerPort{
 								{Name: "metrics", ContainerPort: vropsExporter.Spec.Port},
 							},
 							Command: []string{"./exporter.py"},
 							Args:    args,
-							Env: []v1.EnvVar{
-								{Name: "PORT", Value: string(vropsExporter.Spec.Port)},
-								{Name: "DEBUG", Value: vropsExporter.Spec.Debug},
-								{Name: "INVENTORY", Value: "vrops-inventory"},
+							Env: []corev1.EnvVar{
+								{
+									Name:  "PORT",
+									Value: strconv.Itoa(int(vropsExporter.Spec.Port))},
+								{
+									Name:  "DEBUG",
+									Value: vropsExporter.Spec.Debug},
+								{
+									Name:  "INVENTORY",
+									Value: "vrops-inventory"},
 							},
-							Resources: exporterTyp.Resources,
-							VolumeMounts: []v1.VolumeMount{
-								{Name: "vrops-config", MountPath: "/config", ReadOnly: true},
+							Resources: exporterType.Resources,
+							VolumeMounts: []corev1.VolumeMount{
+								{
+									Name:      "vrops-config",
+									MountPath: "/config",
+									ReadOnly:  true,
+								},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "vrops-config",
+							VolumeSource: corev1.VolumeSource{
+								ConfigMap: &corev1.ConfigMapVolumeSource{
+									LocalObjectReference: corev1.LocalObjectReference{
+										Name: "vrops-exporter-collector-config",
+									},
+								},
 							},
 						},
 					},
@@ -136,6 +197,10 @@ func buildDeployment(vropsExporter monitoringv1.VropsExporter, exporterTyp monit
 	}
 	return &deployment
 }
+
+var (
+	deploymentOwnerKey = ".metadata.controller"
+)
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *VropsExporterReconciler) SetupWithManager(mgr ctrl.Manager) error {

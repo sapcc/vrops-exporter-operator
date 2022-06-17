@@ -153,9 +153,6 @@ spec:
                 type: string
             required:
             - exporter-types
-            - image
-            - inventory
-            - inventory-exporter
             - name
             - password
             - port

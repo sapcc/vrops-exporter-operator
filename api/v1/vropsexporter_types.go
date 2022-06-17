@@ -28,14 +28,14 @@ type VropsExporterSpec struct {
 	ScrapeInterval    int                                 `json:"scrapeInterval,omitempty"`
 	ScrapeTimeout     int                                 `json:"scrapeTimeout,omitempty"`
 	Namespace         string                              `json:"namespace,omitempty"`
-	Image             string                              `json:"image"`
+	Image             string                              `json:"image,omitempty"`
 	Port              int32                               `json:"port"`
 	User              string                              `json:"user"`
 	Password          string                              `json:"password"`
 	Debug             string                              `json:"debug,omitempty"`
 	Target            string                              `json:"target"`
-	Inventory         *VropsExporterInventorySpec         `json:"inventory"`
-	InventoryExporter *VropsExporterInventoryExporterSpec `json:"inventory-exporter"`
+	Inventory         *VropsExporterInventorySpec         `json:"inventory,omitempty"`
+	InventoryExporter *VropsExporterInventoryExporterSpec `json:"inventory-exporter,omitempty"`
 	ExporterTypes     []ExporterType                      `json:"exporter-types"`
 }
 

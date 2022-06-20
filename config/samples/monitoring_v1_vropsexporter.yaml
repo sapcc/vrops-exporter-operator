@@ -1,6 +1,0 @@
-apiVersion: monitoring.cloud.sap/v1
-kind: VropsExporter
-metadata:
-  name: vropsexporter-sample
-spec:
-  # TODO(user): Add fields here

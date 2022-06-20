@@ -6,8 +6,10 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - apps
   - monitoring.cloud.sap
   resources:
+  - deployments
   - vropsexporters
   verbs:
   - create
@@ -22,7 +24,7 @@ rules:
   resources:
   - vropsexporters/finalizers
   verbs:
-  - update
+  - '*'
 - apiGroups:
   - monitoring.cloud.sap
   resources:

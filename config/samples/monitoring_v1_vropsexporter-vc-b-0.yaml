@@ -1,0 +1,69 @@
+apiVersion: monitoring.cloud.sap/v1
+kind: VropsExporter
+metadata:
+  name: vrops-exporter-vrops-vc-b-0
+  namespace: vmware-monitoring
+  labels:
+    target: vrops-exporter
+spec:
+  name: vrops-exporter-vrops-vc-b-0
+  prometheus: vmware
+  namespace: vmware-monitoring
+  image: keppel.eu-de-1.cloud.sap/ccloud/vrops_exporter@sha256:df1236456d18eb42ff4b28e62fd724a40c85c502c8a9a476f670ba7faeb61d80
+  port: 9126
+  user: promapiuser
+  password: msfnj3284w9
+  target: vrops-vc-b-0.cc.qa-de-1.cloud.sap
+  exporter-types:
+    - name: default
+      collectors: []
+    - name: host
+      collectors:
+        - "HostSystemStatsCollector"
+        - "HostSystemPropertiesCollector"
+        - "HostSystemAlertCollector"
+    - name: vm-memory
+      collectors:
+        - "VMStatsMemoryCollector"
+    - name: vm-cpu
+      collectors:
+        - "VMStatsCPUCollector"
+    - name: vm-network
+      collectors:
+        - "VMStatsNetworkCollector"
+    - name: vm-virtualdisk
+      collectors:
+        - "VMStatsVirtualDiskCollector"
+    - name: vm-default
+      collectors:
+        - "VMStatsDefaultCollector"
+    - name: vm-properties-alerts
+      collectors:
+        - "VMPropertiesCollector"
+        - "VMAlertCollector"
+    - name: nsxt
+      collectors:
+        - "NSXTMgmtClusterStatsCollector"
+        - "NSXTMgmtClusterPropertiesCollector"
+        - "NSXTMgmtNodeStatsCollector"
+        - "NSXTMgmtNodePropertiesCollector"
+        - "NSXTTransportNodePropertiesCollector"
+        - "NSXTLogicalSwitchPropertiesCollector"
+    - name: nsxt-alerts
+      collectors:
+        - "NSXTAdapterAlertCollector"
+        - "NSXTMgmtClusterAlertCollector"
+        - "NSXTMgmtServiceAlertCollector"
+        - "NSXTMgmtNodeAlertCollector"
+        - "NSXTTransportNodeAlertCollector"
+        - "NSXTLogicalSwitchAlertCollector"
+    - name: alerts
+      collectors:
+        - "ClusterAlertCollector"
+        - "DatastoreAlertCollector"
+        - "VCenterAlertCollector"
+        - "VcopsSelfMonitoringAlertCollector"
+        - "SDDCAlertCollector"
+
+
+
